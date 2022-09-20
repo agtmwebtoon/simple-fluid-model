@@ -17,28 +17,17 @@ public class RocketEngine : MonoBehaviour
     [SerializeField] private float initialMass;
     
     [SerializeField] private float burnTime;
-    
-    [SerializeField] private GameObject nozzle;
 
     private Rigidbody _rb;
-
-    private Vector3 _origin;
     private float _massBurnRate;
-    public float lifeTime = 10f;
     public bool inWindZone = false;
     public GameObject windZone;
 
-    private void Awake()
-    {
-        
-
-    }
 
     private void Start()
     {
         _rb = gameObject.GetComponent<Rigidbody>();
         _massBurnRate = (initialMass - massNoFuel) / burnTime;
-        _origin = _rb.position;
         _rb.mass = initialMass;
     }
     
@@ -50,17 +39,24 @@ public class RocketEngine : MonoBehaviour
             _rb.AddRelativeTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
         }
 
-
         UpdateMass(Time.fixedDeltaTime);
         UpdateThrust();
         ApplyThrust();
     }
     
+    /**
+     * TODO: Add Calculation with experimental result
+     */
     private void UpdateThrust()
     {
         if (_rb.mass <= massNoFuel) thrust = 0f;
     }
     
+    /**
+     * Decrease mass linearly
+     * TODO: Add Calculation with experimental result 
+     * @param0: deltaTime (default: 0.02)
+     */
     private void UpdateMass(float dt)
     {
         if (_rb.mass <= massNoFuel) return;
@@ -69,42 +65,14 @@ public class RocketEngine : MonoBehaviour
         _rb.mass = Mathf.Max(_rb.mass, massNoFuel);
     }
 
-    private void _keyboardControl()
-    {
-        if (Input.GetKey(KeyCode.W))
-        {
-            Vector3 v3 = new Vector3(5, 0, 0);
-            
-            _rb.AddRelativeTorque(thrust * 0.1f * v3);
-        }
-        
-        if (Input.GetKey(KeyCode.S))
-        {
-            Vector3 v3= new Vector3(-5, 0, 0);
-           
-            _rb.AddRelativeTorque(thrust * 0.1f * v3);
-            
-        }
-        
-        if (Input.GetKey(KeyCode.A))
-        {
-            Vector3 v3= new Vector3(0, 0, -5);
-           
-            _rb.AddRelativeTorque(thrust * 0.1f * v3);
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            Vector3 v3= new Vector3(0, 0, 5);
-            
-            _rb.AddRelativeTorque(thrust * 0.1f * v3);
-            
-        }
-    }
+   
+    /**
+     * Apply force vector to object with thrust
+     */
     
     private void ApplyThrust()
     {
-        _rb.AddRelativeForce(_rb.transform.up* thrust);
-        
+        _rb.AddRelativeForce(_rb.transform.up * thrust);
     }
     
     private void OnTriggerEnter(Collider other)
