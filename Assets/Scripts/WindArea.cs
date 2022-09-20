@@ -15,7 +15,7 @@ public class WindArea : MonoBehaviour
     {
         watch = new Stopwatch();
         direction = new Vector3(UnityEngine.Random.Range(0f, 1f), 
-            0,
+            UnityEngine.Random.Range(0f, 1f),
             UnityEngine.Random.Range(0f, 1f));
         watch.Start();
         
@@ -24,7 +24,7 @@ public class WindArea : MonoBehaviour
 
     private void Update()
     {
-        if (watch.ElapsedMilliseconds > timeFrequency * 100)
+        if (watch.ElapsedMilliseconds > timeFrequency)
         {
             createRandomVector();
             watch.Restart();

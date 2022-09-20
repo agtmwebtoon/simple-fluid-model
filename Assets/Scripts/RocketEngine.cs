@@ -24,13 +24,15 @@ public class RocketEngine : MonoBehaviour
     [SerializeField] private int recordingFreq;
 
     [SerializeField] private int stopTime;
-
+    
+    public bool recording = false;
+    
     
 
     private Rigidbody _rb;
     private Stopwatch watch = new Stopwatch();
     private float _massBurnRate;
-    public bool inWindZone = false;
+    private bool inWindZone = false;
     public GameObject windZone;
     private List<TransformData> _transformData = new List<TransformData>();
     private int _count;
@@ -54,13 +56,14 @@ public class RocketEngine : MonoBehaviour
         {
             string parsedStr = JsonUtility.ToJson(new Serialization<TransformData>(_transformData));
             Debug.Log(parsedStr);
-            File.WriteAllText(_path, parsedStr);
+            if(recording)
+                File.WriteAllText(_path, parsedStr);
             _localCount++;
 
         }
-        if (inWindZone)
+        if (true)
         {
-            _rb.AddRelativeTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
+            _rb.AddTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
         }
 
         if (watch.ElapsedMilliseconds > recordingFreq)
@@ -103,16 +106,18 @@ public class RocketEngine : MonoBehaviour
     
     private void ApplyThrust()
     {
-        _rb.AddRelativeForce(_rb.transform.up * thrust);
+        _rb.AddForce(_rb.transform.up * thrust);
     }
     
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("windArea"))
         {
+            Debug.Log("Im in");
             windZone = other.gameObject;
             inWindZone = true;
         }
+        Debug.Log("Im in");
     }
 
     private void OnTriggerExit(Collider other)
