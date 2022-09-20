@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using DefaultNamespace;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 using UnityEngine.UIElements;
@@ -18,25 +21,53 @@ public class RocketEngine : MonoBehaviour
     
     [SerializeField] private float burnTime;
 
+    [SerializeField] private int recordingFreq;
+
+    [SerializeField] private int stopTime;
+
+    
+
     private Rigidbody _rb;
+    private Stopwatch watch = new Stopwatch();
     private float _massBurnRate;
     public bool inWindZone = false;
     public GameObject windZone;
-
-
+    private List<TransformData> _transformData = new List<TransformData>();
+    private int _count;
+    private int _localCount;
+    private string _path;
+    
     private void Start()
     {
         _rb = gameObject.GetComponent<Rigidbody>();
         _massBurnRate = (initialMass - massNoFuel) / burnTime;
         _rb.mass = initialMass;
+        watch.Start();
+        _count = (int)(stopTime / recordingFreq);
+        _path = Path.Combine(Application.dataPath + "/PositionData/", "data.json");
     }
     
     
     private void FixedUpdate()
     {
+        if (_count == _localCount)
+        {
+            string parsedStr = JsonUtility.ToJson(new Serialization<TransformData>(_transformData));
+            Debug.Log(parsedStr);
+            File.WriteAllText(_path, parsedStr);
+            _localCount++;
+
+        }
         if (inWindZone)
         {
             _rb.AddRelativeTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
+        }
+
+        if (watch.ElapsedMilliseconds > recordingFreq)
+        {
+            _transformData.Add(new TransformData(_rb.position, _rb.rotation.eulerAngles, _rb.velocity));
+            _localCount++;
+            watch.Restart();
         }
 
         UpdateMass(Time.fixedDeltaTime);
@@ -90,6 +121,22 @@ public class RocketEngine : MonoBehaviour
         {
             windZone = other.gameObject;
             inWindZone = false;
+        }
+    }
+
+    [Serializable]
+    public class Serialization<T>
+    {
+        [SerializeField] private List<T> target;
+
+        public List<T> ToList()
+        {
+            return target;
+        }
+        
+        public Serialization(List<T> target)
+        {
+            this.target = target;
         }
     }
 }
