@@ -1,5 +1,6 @@
 ﻿using System;
 using DefaultNamespace.InfoClass;
+using UnityEngine;
 
 namespace DefaultNamespace.utils
 {
@@ -17,7 +18,7 @@ namespace DefaultNamespace.utils
             if (RayNum < 10e4)
             {
                 _correctionFactor = 1.48 * 10e-2;
-            } else if (10e4 <= RayNum && _RayNumCrit < _RayNumCrit)
+            } else if (10e4 <= RayNum && RayNum <= 5 * 10e5)
             {
                 _correctionFactor = Math.Pow(1.5 * Math.Log(RayNum) - 5.6, -2);
             }
@@ -58,7 +59,8 @@ namespace DefaultNamespace.utils
 
         public void calDragLoop(double velocity)
         {
-            double _reyNum = 14.88 * 10 - 6 * velocity * Rocket.RocketLength;
+            double _reyNum = 10e5 * velocity * Rocket.RocketLength / 1.488;
+            Debug.Log(velocity);
             _calcSkinFriction(_reyNum);
             _calcFinPressure(velocity);
             _integrateForce(velocity);

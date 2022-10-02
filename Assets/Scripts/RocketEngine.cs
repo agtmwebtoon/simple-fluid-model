@@ -35,6 +35,8 @@ public class RocketEngine : MonoBehaviour
 
     public bool withExperiment = true;
 
+    public bool withRollRotation = false;
+
 
     private Drag drag;
     private Rigidbody _rb;
@@ -49,7 +51,7 @@ public class RocketEngine : MonoBehaviour
     private List<double> _TMSForce;
     private List<double> _grainMass;
     private int _timestamp = 0;
-    
+
     private void Start()
     {                        
         _rb = gameObject.GetComponent<Rigidbody>();
@@ -84,6 +86,12 @@ public class RocketEngine : MonoBehaviour
     {
         double currentForce;
         double currentMass;
+
+        if (withRollRotation)
+        {
+            _rb.AddTorque(new Vector3(0, 1, 0) * _timestamp);
+        }
+        
         
         if (_count == _localCount)
         {
@@ -182,6 +190,8 @@ public class RocketEngine : MonoBehaviour
             {
                 _rb.AddForce(_rb.transform.up * (float)currentThrust );
             }
+            
+            Debug.Log(_rb.transform.up);
         }
 
         else
