@@ -15,7 +15,7 @@ public class WindArea : MonoBehaviour
     {
         watch = new Stopwatch();
         direction = new Vector3(UnityEngine.Random.Range(0f, 1f), 
-            UnityEngine.Random.Range(0f, 1f),
+            0,
             UnityEngine.Random.Range(0f, 1f));
         watch.Start();
         
@@ -34,7 +34,7 @@ public class WindArea : MonoBehaviour
     private void createRandomVector()
     {
         direction = new Vector3(UnityEngine.Random.Range(0f, 1f), 
-            UnityEngine.Random.Range(0f, 1f),
+            0,
             UnityEngine.Random.Range(0f, 1f));
         
         direction = Vector3.Normalize(direction);

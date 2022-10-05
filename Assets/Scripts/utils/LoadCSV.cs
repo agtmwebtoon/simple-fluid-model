@@ -19,7 +19,6 @@ public class LoadCSV
     {
         foreach (var _elem in _dataList)
         {
-            Debug.Log(_elem[column]);
             double _temp = Convert.ToDouble(_elem[column]);
             data.Add(_temp);
         }

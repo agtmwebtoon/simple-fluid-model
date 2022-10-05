@@ -37,7 +37,12 @@ public class RocketEngine : MonoBehaviour
 
     public bool withRollRotation = false;
 
-
+    public float k;
+    
+    public GameObject top;
+    
+    public GameObject cp;
+    
     private Drag drag;
     private Rigidbody _rb;
     private Stopwatch watch = new Stopwatch();
@@ -51,6 +56,8 @@ public class RocketEngine : MonoBehaviour
     private List<double> _TMSForce;
     private List<double> _grainMass;
     private int _timestamp = 0;
+
+    
 
     private void Start()
     {                        
@@ -89,14 +96,13 @@ public class RocketEngine : MonoBehaviour
 
         if (withRollRotation)
         {
-            _rb.AddTorque(new Vector3(0, 1, 0) * _timestamp);
+            _rb.AddRelativeTorque(new Vector3(0, (float)0.1, 0) * _timestamp);
         }
         
         
         if (_count == _localCount)
         {
             string parsedStr = JsonUtility.ToJson(new Serialization<TransformData>(_transformData));
-            Debug.Log(parsedStr);
             if(recording)
                 File.WriteAllText(_path, parsedStr); 
             _localCount++;
@@ -105,6 +111,26 @@ public class RocketEngine : MonoBehaviour
         if (withRandomField)
         {
             _rb.AddRelativeTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
+            Vector3 _recoveryTorque = calcRecoveryForce();
+            
+            Vector3 temp = new Vector3(top.transform.position.x, cp.transform.position.y, top.transform.position.z);
+            Debug.DrawLine(cp.transform.position, temp, Color.black);
+            Debug.Log("tip: " + temp.ToString());
+            Debug.Log("Temp: " + temp.ToString());
+            temp = (cp.transform.position - temp) * 10;
+            //temp = Vector3.Normalize(temp);
+            
+            Debug.Log("Temp: " + temp.ToString());
+            
+            
+            Vector3 ttemp = new Vector3(temp.x * _recoveryTorque.x, 
+                0,
+                 temp.x * _recoveryTorque.z);
+            
+            Debug.Log("Temp: " + ttemp.ToString());
+            _rb.AddRelativeTorque(ttemp);
+            
+            
         }
 
         if (watch.ElapsedMilliseconds > recordingFreq)
@@ -171,6 +197,31 @@ public class RocketEngine : MonoBehaviour
         
     }
 
+    private Vector3 calcRecoveryForce()
+    {
+        Vector3 _rot = _rb.rotation.eulerAngles;
+       
+        double xForce = Math.Cos(_rot.x * Mathf.Deg2Rad);
+        double zForce = Math.Sin(_rot.z * Mathf.Deg2Rad);
+
+        double xSpring = Math.Tan(_rot.x * Mathf.Deg2Rad);
+        double zSpring = Math.Tan(_rot.z * Mathf.Deg2Rad);
+
+        
+        
+        xForce =  (2 * k * Rocket.RocketLength * xSpring) / xForce;
+        
+        
+        zForce =  (2 * k * Rocket.RocketLength * zSpring) / zForce;
+
+        Vector3 ret = new Vector3((float)xForce, 0, (float)zForce);
+
+        Debug.Log("restore:" + ret.ToString());
+        
+        return ret;
+        
+    }
+
    
     /**
      * Apply force vector to object with thrust
@@ -178,7 +229,6 @@ public class RocketEngine : MonoBehaviour
     
     private void ApplyThrust(double currentThrust)
     {
-        Debug.Log(currentThrust);
         if (withExperiment)
         {
             if (isDrag)
@@ -191,7 +241,6 @@ public class RocketEngine : MonoBehaviour
                 _rb.AddForce(_rb.transform.up * (float)currentThrust );
             }
             
-            Debug.Log(_rb.transform.up);
         }
 
         else
@@ -213,11 +262,9 @@ public class RocketEngine : MonoBehaviour
     {
         if (other.gameObject.CompareTag("windArea"))
         {
-            Debug.Log("Im in");
             windZone = other.gameObject;
             inWindZone = true;
         }
-        Debug.Log("Im in");
     }
 
     private void OnTriggerExit(Collider other)
