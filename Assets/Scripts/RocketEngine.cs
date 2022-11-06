@@ -27,6 +27,8 @@ public class RocketEngine : MonoBehaviour
 
     [SerializeField] private int stopTime;
     
+    [SerializeField] private ParticleSystem _jet;
+    
     public bool recording = false;
 
     public bool withRandomField = false;
@@ -56,7 +58,8 @@ public class RocketEngine : MonoBehaviour
     private List<double> _TMSForce;
     private List<double> _grainMass;
     private int _timestamp = 0;
-
+    private Stopwatch globalTime = new Stopwatch();
+    
     
 
     private void Start()
@@ -65,14 +68,15 @@ public class RocketEngine : MonoBehaviour
         _massBurnRate = (initialMass - massNoFuel) / burnTime;
         _rb.mass = initialMass;
         watch.Start();
+        globalTime.Start();
         _count = (int)(stopTime / recordingFreq);
         _path = Path.Combine(Application.dataPath + "/PositionData/", "data.json");
+        //LoadCSV TMS_csv = new LoadCSV("augmented_data_x5");
         LoadCSV TMS_csv = new LoadCSV("TMS");
         LoadCSV grainMass_csv = new LoadCSV("Grain");
         drag = new Drag();
         TMS_csv.Read("F(N)");
         grainMass_csv.Read("grainMass");
-
         _TMSForce = TMS_csv.data;
         _grainMass = grainMass_csv.data;
 
@@ -108,9 +112,13 @@ public class RocketEngine : MonoBehaviour
             _localCount++;
 
         }
-        if (withRandomField)
+        if (withRandomField || globalTime.ElapsedMilliseconds < 10000)
         {
-            _rb.AddRelativeTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
+            if (globalTime.ElapsedMilliseconds > 1500)
+            {
+                _rb.AddRelativeTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
+            }
+            
             Vector3 _recoveryTorque = calcRecoveryForce();
 
             Vector3 temp = (float)0.95 * top.transform.position -  cp.transform.position;
@@ -133,6 +141,11 @@ public class RocketEngine : MonoBehaviour
             _rb.AddTorque(torque);
             
             
+        }
+
+        if (globalTime.ElapsedMilliseconds > 10000)
+        {
+            _jet.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
 
         if (watch.ElapsedMilliseconds > recordingFreq)
@@ -195,10 +208,6 @@ public class RocketEngine : MonoBehaviour
         
     }
 
-    private void UpdateMassByExperimentalResult()
-    {
-        
-    }
 
     private Vector3 calcRecoveryForce()
     {
