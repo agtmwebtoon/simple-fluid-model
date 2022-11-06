@@ -38,5 +38,7 @@ public class WindArea : MonoBehaviour
             UnityEngine.Random.Range(0f, 1f));
         
         direction = Vector3.Normalize(direction);
+
+        strength = UnityEngine.Random.Range(0f, 4f);
     }
 }

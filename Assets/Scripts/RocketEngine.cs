@@ -112,23 +112,25 @@ public class RocketEngine : MonoBehaviour
         {
             _rb.AddRelativeTorque(windZone.GetComponent<WindArea>().direction * windZone.GetComponent<WindArea>().strength);
             Vector3 _recoveryTorque = calcRecoveryForce();
-            
-            Vector3 temp = new Vector3(top.transform.position.x, cp.transform.position.y, top.transform.position.z);
-            Debug.DrawLine(cp.transform.position, temp, Color.black);
+
+            Vector3 temp = (float)0.95 * top.transform.position -  cp.transform.position;
+            Debug.Log("top: " + top.transform.position.ToString());
+            Debug.Log("cp: " + cp.transform.position.ToString());
+            temp = Vector3.Normalize(temp);
+            Debug.DrawLine(temp, temp, Color.cyan);
             Debug.Log("tip: " + temp.ToString());
-            Debug.Log("Temp: " + temp.ToString());
-            temp = (cp.transform.position - temp) * 10;
-            //temp = Vector3.Normalize(temp);
-            
-            Debug.Log("Temp: " + temp.ToString());
             
             
-            Vector3 ttemp = new Vector3(temp.x * _recoveryTorque.x, 
+            
+            
+            Vector3 ttemp = new Vector3(30 * temp.x * _recoveryTorque.x, 
                 0,
-                 temp.x * _recoveryTorque.z);
-            
+                 temp.z * _recoveryTorque.z);
+
+            Vector3 r = _rb.centerOfMass - cp.transform.position;
+            Vector3 torque = Vector3.Cross(r, ttemp);
             Debug.Log("Temp: " + ttemp.ToString());
-            _rb.AddRelativeTorque(ttemp);
+            _rb.AddTorque(torque);
             
             
         }
@@ -176,6 +178,7 @@ public class RocketEngine : MonoBehaviour
      * TODO: Add Calculation with experimental result 
      * @param0: deltaTime (default: 0.02)
      */
+    
     private void UpdateMass(float dt, double currentMass)
     {
         if (withExperiment)
@@ -209,10 +212,10 @@ public class RocketEngine : MonoBehaviour
 
         
         
-        xForce =  (2 * k * Rocket.RocketLength * xSpring) / xForce;
+        xForce =  -(k * Rocket.RocketLength * xSpring) / xForce;
         
         
-        zForce =  (2 * k * Rocket.RocketLength * zSpring) / zForce;
+        zForce =  -(k * Rocket.RocketLength * zSpring) / zForce;
 
         Vector3 ret = new Vector3((float)xForce, 0, (float)zForce);
 
